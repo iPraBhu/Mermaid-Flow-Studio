@@ -10,6 +10,8 @@ const FONT_STACKS: Record<StudioSettings["fontFamily"], string> = {
 };
 
 let mermaidPromise: Promise<typeof import("mermaid").default> | null = null;
+let renderQueue: Promise<void> = Promise.resolve();
+let renderHost: HTMLDivElement | null = null;
 
 function getMermaid() {
   if (!mermaidPromise) {
@@ -17,6 +19,54 @@ function getMermaid() {
   }
 
   return mermaidPromise;
+}
+
+function assertBrowserRenderingSupport() {
+  if (
+    typeof window === "undefined" ||
+    typeof document === "undefined" ||
+    typeof DOMParser === "undefined" ||
+    typeof XMLSerializer === "undefined"
+  ) {
+    throw new Error("Mermaid rendering is only available in a browser context.");
+  }
+}
+
+function getRenderHost() {
+  assertBrowserRenderingSupport();
+
+  if (!renderHost || !renderHost.isConnected) {
+    renderHost = document.createElement("div");
+    renderHost.setAttribute("aria-hidden", "true");
+    renderHost.setAttribute("data-mermaid-render-host", "true");
+    renderHost.style.position = "fixed";
+    renderHost.style.left = "-10000px";
+    renderHost.style.top = "0";
+    renderHost.style.width = "1px";
+    renderHost.style.height = "1px";
+    renderHost.style.overflow = "hidden";
+    renderHost.style.pointerEvents = "none";
+    document.body.appendChild(renderHost);
+  }
+
+  return renderHost;
+}
+
+function createRenderId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `mfs-${crypto.randomUUID().replace(/-/g, "")}`;
+  }
+
+  return `mfs-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function enqueueRender<T>(task: () => Promise<T>) {
+  const nextTask = renderQueue.then(task, task);
+  renderQueue = nextTask.then(
+    () => undefined,
+    () => undefined
+  );
+  return nextTask;
 }
 
 function hexToRgb(hex: string) {
@@ -85,10 +135,10 @@ function buildMermaidConfig(settings: StudioSettings): MermaidConfig {
     startOnLoad: false,
     securityLevel: "strict",
     theme: settings.mermaidTheme,
+    htmlLabels: true,
     fontFamily,
     flowchart: {
       useMaxWidth: false,
-      htmlLabels: false,
       nodeSpacing: settings.nodeSpacing,
       rankSpacing: settings.rankSpacing,
       padding: settings.padding,
@@ -141,6 +191,7 @@ function parseSvgDimensions(svgElement: SVGSVGElement) {
 }
 
 export function getSvgSize(svgMarkup: string) {
+  assertBrowserRenderingSupport();
   const parser = new DOMParser();
   const document = parser.parseFromString(svgMarkup, "image/svg+xml");
   const svg = document.querySelector("svg");
@@ -151,6 +202,7 @@ export function getSvgSize(svgMarkup: string) {
 }
 
 function postProcessSvg(svgMarkup: string, settings: StudioSettings) {
+  assertBrowserRenderingSupport();
   const parser = new DOMParser();
   const document = parser.parseFromString(svgMarkup, "image/svg+xml");
   const svg = document.querySelector("svg");
@@ -195,18 +247,29 @@ function postProcessSvg(svgMarkup: string, settings: StudioSettings) {
 }
 
 export async function renderMermaidDiagram(source: string, settings: StudioSettings) {
-  const mermaid = await getMermaid();
-  mermaid.initialize(buildMermaidConfig(settings));
+  assertBrowserRenderingSupport();
 
-  await mermaid.parse(source);
+  return enqueueRender(async () => {
+    const mermaid = await getMermaid();
+    const host = getRenderHost();
 
-  const id = `mfs-${crypto.randomUUID().replace(/-/g, "")}`;
-  const { svg } = await mermaid.render(id, source);
-  const processed = postProcessSvg(svg, settings);
-  const size = getSvgSize(processed);
+    mermaid.initialize(buildMermaidConfig(settings));
 
-  return {
-    svg: processed,
-    ...size
-  };
+    await mermaid.parse(source);
+
+    const id = createRenderId();
+
+    try {
+      const { svg } = await mermaid.render(id, source, host);
+      const processed = postProcessSvg(svg, settings);
+      const size = getSvgSize(processed);
+
+      return {
+        svg: processed,
+        ...size
+      };
+    } finally {
+      host.replaceChildren();
+    }
+  });
 }
