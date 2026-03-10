@@ -13,6 +13,61 @@ let mermaidPromise: Promise<typeof import("mermaid").default> | null = null;
 let renderQueue: Promise<void> = Promise.resolve();
 let renderHost: HTMLDivElement | null = null;
 
+interface RenderAttempt {
+  htmlLabels: boolean;
+  source: string;
+}
+
+function normalizeMermaidSource(source: string) {
+  return source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+}
+
+function encodeHtmlInLabels(source: string) {
+  // Encode HTML tags that appear inside Mermaid node labels
+  return source.replace(/(\[.*?)<br\s*\/?>(.*?\])/gi, '$1&lt;br/&gt;$2')
+               .replace(/(\{.*?)<br\s*\/?>(.*?\})/gi, '$1&lt;br/&gt;$2')
+               .replace(/(\(.*?)<br\s*\/?>(.*?\))/gi, '$1&lt;br/&gt;$2')
+               .replace(/(\[.*?)<br\s*\/?>(.*?\))/gi, '$1&lt;br/&gt;$2')
+               .replace(/(\(.*?)<br\s*\/?>(.*?\])/gi, '$1&lt;br/&gt;$2');
+}
+
+function normalizeHtmlBreaks(source: string) {
+  // Convert multiple consecutive HTML breaks to single breaks, but only outside of labels
+  return source.replace(/(?:<br\s*\/?>\s*)+/gi, "<br/>");
+}
+
+function stripHtmlBreaks(source: string) {
+  // Replace HTML breaks with spaces for fallback compatibility 
+  return source.replace(/<br\s*\/?>/gi, " ");
+}
+
+function buildRenderAttempts(source: string) {
+  const normalized = normalizeMermaidSource(source);
+  const encoded = encodeHtmlInLabels(normalized);
+  const withHtmlBreaks = normalizeHtmlBreaks(normalized);
+  const withoutBreaks = stripHtmlBreaks(normalized);
+  
+  const attempts: RenderAttempt[] = [
+    // Try with HTML-encoded breaks first (safest)
+    { source: encoded, htmlLabels: true },
+    { source: encoded, htmlLabels: false },
+    
+    // Try with actual HTML breaks
+    { source: withHtmlBreaks, htmlLabels: true },
+    
+    // Try without breaks as fallback
+    { source: withoutBreaks, htmlLabels: true },
+    { source: withoutBreaks, htmlLabels: false }
+  ];
+
+  // Remove duplicates
+  const unique = attempts.filter((attempt, index, arr) => 
+    arr.findIndex(a => a.source === attempt.source && a.htmlLabels === attempt.htmlLabels) === index
+  );
+
+  return unique;
+}
+
 function getMermaid() {
   if (!mermaidPromise) {
     mermaidPromise = import("mermaid").then((mod) => mod.default);
@@ -125,17 +180,21 @@ export function resolveBackground(settings: StudioSettings) {
   }
 }
 
-function buildMermaidConfig(settings: StudioSettings): MermaidConfig {
+function buildMermaidConfig(
+  settings: StudioSettings,
+  options: { htmlLabels?: boolean } = {}
+): MermaidConfig {
   const accent = settings.accentColor;
   const surface = resolveBackground(settings) === "transparent" ? "#ffffff" : resolveBackground(settings);
   const textColor = settings.backgroundMode === "dark" || isDark(surface) ? "#f8fafc" : "#0f172a";
   const fontFamily = FONT_STACKS[settings.fontFamily];
+  const htmlLabels = options.htmlLabels ?? true;
 
   return {
     startOnLoad: false,
     securityLevel: "strict",
     theme: settings.mermaidTheme,
-    htmlLabels: true,
+    htmlLabels,
     fontFamily,
     flowchart: {
       useMaxWidth: false,
@@ -252,24 +311,33 @@ export async function renderMermaidDiagram(source: string, settings: StudioSetti
   return enqueueRender(async () => {
     const mermaid = await getMermaid();
     const host = getRenderHost();
+    const attempts = buildRenderAttempts(source);
+    let lastError: unknown;
 
-    mermaid.initialize(buildMermaidConfig(settings));
+    for (const attempt of attempts) {
+      try {
+        mermaid.initialize(buildMermaidConfig(settings, { htmlLabels: attempt.htmlLabels }));
 
-    await mermaid.parse(source);
+        await mermaid.parse(attempt.source);
 
-    const id = createRenderId();
+        const id = createRenderId();
+        const { svg } = await mermaid.render(id, attempt.source, host);
+        const processed = postProcessSvg(svg, settings);
+        const size = getSvgSize(processed);
 
-    try {
-      const { svg } = await mermaid.render(id, source, host);
-      const processed = postProcessSvg(svg, settings);
-      const size = getSvgSize(processed);
-
-      return {
-        svg: processed,
-        ...size
-      };
-    } finally {
-      host.replaceChildren();
+        return {
+          svg: processed,
+          ...size
+        };
+      } catch (error) {
+        lastError = error;
+      } finally {
+        host.replaceChildren();
+      }
     }
+
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("Mermaid could not parse the diagram source.");
   });
 }

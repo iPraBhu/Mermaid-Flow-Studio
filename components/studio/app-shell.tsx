@@ -1,7 +1,32 @@
+import dynamic from "next/dynamic";
 import { ArrowRight, Download, Shield, Wand2, WifiOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { StudioWorkspace } from "@/components/studio/studio-workspace";
+
+const StudioWorkspace = dynamic(
+  () => import("@/components/studio/studio-workspace").then((mod) => mod.StudioWorkspace),
+  {
+    ssr: false,
+    loading: () => (
+      <section
+        id="studio"
+        aria-labelledby="studio-heading"
+        className="relative mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8"
+      >
+        <div className="surface-card-strong overflow-hidden p-6 sm:p-8">
+          <div className="rounded-[26px] border border-[color:var(--border)] bg-white/70 p-6 dark:bg-white/5">
+            <h2 id="studio-heading" className="text-3xl font-semibold tracking-tight">
+              Mermaid Flow Studio
+            </h2>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-[var(--muted-foreground)] md:text-lg">
+              Loading the browser workspace...
+            </p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+);
 
 const features = [
   {

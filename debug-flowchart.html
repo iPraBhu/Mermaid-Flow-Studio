@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Flowchart Debug Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .test-case {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-case h3 {
+            margin-top: 0;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .mermaid {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            color: #166534;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        pre {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mermaid Flowchart Debug Tool</h1>
+    <p>This tool tests your problematic flowchart with different configurations to identify the exact issue.</p>
+
+    <div class="test-case">
+        <h3>Test 1: Original Flowchart (as provided)</h3>
+        <div id="original-result"></div>
+        <div class="mermaid" id="original">
+flowchart TD
+    A([User opens app in browser]) --> B[Initialize shared browser-session inactivity manager]
+    B --> C[Track activity from all open tabs<br/>click / keypress / mousemove / scroll / API interaction]
+    
+    C --> D{Activity detected in any tab?}
+    D -->|Yes| E[Broadcast activity to all tabs]
+    E --> F[Reset shared inactivity timer<br/>for the whole browser session]
+    F --> G[User remains active]
+    G --> C
+
+    D -->|No| H{Has configured inactivity period elapsed<br/>with no activity in any tab?}
+    H -->|No| C
+    H -->|Yes| I[Mark browser session as inactive]
+    
+    I --> J[Clear access token from local storage]
+    J --> K{Choose expiry handling}
+    K -->|Redirect flow| L[Redirect user to login page]
+    K -->|Inline UX flow| M[Show session expired message]
+    
+    style A fill:#7dd3fc,stroke:#0369a1,stroke-width:2px,color:#0f172a
+    style B fill:#c4b5fd,stroke:#6d28d9,stroke-width:2px,color:#0f172a
+    style C fill:#86efac,stroke:#15803d,stroke-width:2px,color:#0f172a
+    style D fill:#fde68a,stroke:#b45309,stroke-width:2px,color:#0f172a
+    style E fill:#f9a8d4,stroke:#be185d,stroke-width:2px,color:#0f172a
+    style F fill:#67e8f9,stroke:#0e7490,stroke-width:2px,color:#0f172a
+    style G fill:#bbf7d0,stroke:#166534,stroke-width:2px,color:#0f172a
+    style H fill:#fcd34d,stroke:#92400e,stroke-width:2px,color:#0f172a
+    style I fill:#fca5a5,stroke:#b91c1c,stroke-width:2px,color:#0f172a
+    style J fill:#fdba74,stroke:#c2410c,stroke-width:2px,color:#0f172a
+    style K fill:#ddd6fe,stroke:#7c3aed,stroke-width:2px,color:#0f172a
+    style L fill:#93c5fd,stroke:#1d4ed8,stroke-width:2px,color:#0f172a
+    style M fill:#f5d0fe,stroke:#a21caf,stroke-width:2px,color:#0f172a
+        </div>
+    </div>
+
+    <div class="test-case">
+        <h3>Test 2: Without Custom Styles</h3>
+        <div id="no-styles-result"></div>
+        <div class="mermaid" id="no-styles">
+flowchart TD
+    A([User opens app in browser]) --> B[Initialize shared browser-session inactivity manager]
+    B --> C[Track activity from all open tabs<br/>click / keypress / mousemove / scroll / API interaction]
+    
+    C --> D{Activity detected in any tab?}
+    D -->|Yes| E[Broadcast activity to all tabs]
+    E --> F[Reset shared inactivity timer<br/>for the whole browser session]
+    F --> G[User remains active]
+    G --> C
+
+    D -->|No| H{Has configured inactivity period elapsed<br/>with no activity in any tab?}
+    H -->|No| C
+    H -->|Yes| I[Mark browser session as inactive]
+    
+    I --> J[Clear access token from local storage]
+    J --> K{Choose expiry handling}
+    K -->|Redirect flow| L[Redirect user to login page]
+    K -->|Inline UX flow| M[Show session expired message]
+        </div>
+    </div>
+
+    <div class="test-case">
+        <h3>Test 3: Without HTML Line Breaks</h3>
+        <div id="no-breaks-result"></div>
+        <div class="mermaid" id="no-breaks">
+flowchart TD
+    A([User opens app in browser]) --> B[Initialize shared browser-session inactivity manager]
+    B --> C[Track activity from all open tabs - click / keypress / mousemove / scroll / API interaction]
+    
+    C --> D{Activity detected in any tab?}
+    D -->|Yes| E[Broadcast activity to all tabs]
+    E --> F[Reset shared inactivity timer for the whole browser session]
+    F --> G[User remains active]
+    G --> C
+
+    D -->|No| H{Has configured inactivity period elapsed with no activity in any tab?}
+    H -->|No| C
+    H -->|Yes| I[Mark browser session as inactive]
+    
+    I --> J[Clear access token from local storage]
+    J --> K{Choose expiry handling}
+    K -->|Redirect flow| L[Redirect user to login page]
+    K -->|Inline UX flow| M[Show session expired message]
+        </div>
+    </div>
+
+    <div class="test-case">
+        <h3>Test 4: Simplified Version</h3>
+        <div id="simple-result"></div>
+        <div class="mermaid" id="simple">
+flowchart TD
+    A([User opens app]) --> B[Initialize manager]
+    B --> C[Track activity]
+    C --> D{Activity detected?}
+    D -->|Yes| E[Broadcast activity]
+    D -->|No| F[Mark inactive]
+    E --> C
+    F --> G[Clear token]
+    G --> H{Choose flow}
+    H -->|Redirect| I[Login page]
+    H -->|Inline| J[Show message]
+        </div>
+    </div>
+
+    <script>
+        // Configure Mermaid similar to your app
+        mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'strict',
+            theme: 'default',
+            htmlLabels: true,
+            flowchart: {
+                useMaxWidth: false,
+                nodeSpacing: 50,
+                rankSpacing: 50,
+                padding: 15,
+                curve: 'basis'
+            }
+        });
+
+        // Test functions
+        async function testDiagram(elementId, resultId, testName) {
+            const element = document.getElementById(elementId);
+            const resultDiv = document.getElementById(resultId);
+            
+            try {
+                // Clear any existing content
+                element.innerHTML = element.getAttribute('data-original') || element.innerHTML;
+                
+                // Try to render
+                await mermaid.run({
+                    nodes: [element]
+                });
+                
+                resultDiv.innerHTML = `<div class="success">✅ ${testName} rendered successfully!</div>`;
+            } catch (error) {
+                console.error(`Error in ${testName}:`, error);
+                resultDiv.innerHTML = `<div class="error">❌ ${testName} failed: ${error.message}</div>`;
+                
+                // Store original content for retry
+                if (!element.getAttribute('data-original')) {
+                    element.setAttribute('data-original', element.innerHTML);
+                }
+                element.innerHTML = `<p>Rendering failed: ${error.message}</p>`;
+            }
+        }
+
+        // Store original content
+        document.querySelectorAll('.mermaid').forEach(el => {
+            el.setAttribute('data-original', el.innerHTML);
+        });
+
+        // Run tests
+        window.addEventListener('load', async () => {
+            await testDiagram('original', 'original-result', 'Original Flowchart');
+            await testDiagram('no-styles', 'no-styles-result', 'Without Custom Styles');
+            await testDiagram('no-breaks', 'no-breaks-result', 'Without HTML Breaks');
+            await testDiagram('simple', 'simple-result', 'Simplified Version');
+        });
+    </script>
+</body>
+</html>
