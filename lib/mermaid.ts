@@ -88,7 +88,7 @@ function buildMermaidConfig(settings: StudioSettings): MermaidConfig {
     fontFamily,
     flowchart: {
       useMaxWidth: false,
-      htmlLabels: true,
+      htmlLabels: false,
       nodeSpacing: settings.nodeSpacing,
       rankSpacing: settings.rankSpacing,
       padding: settings.padding,
