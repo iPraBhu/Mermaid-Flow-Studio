@@ -288,9 +288,9 @@ export function ExportControlPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Export defaults</CardTitle>
+        <CardTitle>Output settings</CardTitle>
         <CardDescription>
-          Tune output size, scale, background, and file naming for quick one-click downloads.
+          Optional. Adjust size, scale, padding, and file naming before downloading.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">

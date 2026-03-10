@@ -17,24 +17,13 @@ import { loadStudioSettings, saveStudioSettings } from "@/lib/storage";
 import type { ExportFormat, PreviewState, StudioSettings, TemplateDefinition } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import { OfflineIndicator } from "@/components/studio/offline-indicator";
 import { ThemeToggle } from "@/components/studio/theme-toggle";
 import { EditorPanel } from "@/components/studio/editor-panel";
 import { TemplateGallery } from "@/components/studio/template-gallery";
 import { PreviewPanel } from "@/components/studio/preview-panel";
-import {
-  ExportControlPanel,
-  StyleControlPanel
-} from "@/components/studio/control-panel";
-import { ExportDialog } from "@/components/studio/export-dialog";
+import { StyleControlPanel } from "@/components/studio/control-panel";
+import { ExportCenter } from "@/components/studio/export-dialog";
 
 const initialPreviewState: PreviewState = {
   svg: null,
@@ -49,8 +38,6 @@ export function StudioWorkspace() {
   const [preview, setPreview] = useState<PreviewState>(initialPreviewState);
   const [hydrated, setHydrated] = useState(false);
   const [mobileTab, setMobileTab] = useState("editor");
-  const [desktopTab, setDesktopTab] = useState("style");
-  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const renderRun = useRef(0);
 
@@ -210,7 +197,6 @@ export function StudioWorkspace() {
       updateSetting("exportFormat", format);
       await exportDiagram(preview.svg, settings, format);
       toast.success(`${format.toUpperCase()} export downloaded`);
-      setExportDialogOpen(false);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "The export could not be generated."
@@ -281,25 +267,12 @@ export function StudioWorkspace() {
                 <Link2 className="h-4 w-4" />
                 Share
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button>
-                    <Download className="h-4 w-4" />
-                    Download
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Quick export</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => handleExport("svg")}>SVG</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExport("png")}>PNG</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExport("jpeg")}>JPEG</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExport("pdf")}>PDF</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setExportDialogOpen(true)}>
-                    Custom export settings
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button asChild>
+                <a href="#output-center">
+                  <Download className="h-4 w-4" />
+                  Download
+                </a>
+              </Button>
             </div>
           </div>
           <div className="rounded-[26px] border border-[color:var(--border)] bg-white/70 p-4 dark:bg-white/5">
@@ -337,13 +310,13 @@ export function StudioWorkspace() {
 
         <div className="mt-6 lg:hidden">
           <Tabs value={mobileTab} onValueChange={setMobileTab}>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="editor">Editor</TabsTrigger>
               <TabsTrigger value="style">Style</TabsTrigger>
               <TabsTrigger value="preview">Preview</TabsTrigger>
-              <TabsTrigger value="export">Export</TabsTrigger>
             </TabsList>
             <TabsContent value="editor" className="space-y-6">
+              <TemplateGallery templates={TEMPLATE_LIBRARY} onSelectTemplate={applyTemplate} />
               <EditorPanel
                 source={settings.source}
                 onSourceChange={(value) => updateSetting("source", value)}
@@ -351,7 +324,6 @@ export function StudioWorkspace() {
                 onReset={handleReset}
                 onImport={handleImportClick}
               />
-              <TemplateGallery templates={TEMPLATE_LIBRARY} onSelectTemplate={applyTemplate} />
             </TabsContent>
             <TabsContent value="style">
               <StyleControlPanel
@@ -364,18 +336,12 @@ export function StudioWorkspace() {
             <TabsContent value="preview">
               <PreviewPanel preview={preview} settings={settings} />
             </TabsContent>
-            <TabsContent value="export">
-              <ExportControlPanel
-                settings={settings}
-                onChange={updateSetting}
-                onApplyResolution={applyResolution}
-              />
-            </TabsContent>
           </Tabs>
         </div>
 
         <div className="mt-6 hidden gap-6 lg:grid">
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,400px)_minmax(0,1fr)]">
+          <TemplateGallery templates={TEMPLATE_LIBRARY} onSelectTemplate={applyTemplate} />
+          <div className="grid gap-6 xl:grid-cols-[minmax(320px,380px)_minmax(0,1fr)]">
             <EditorPanel
               source={settings.source}
               onSourceChange={(value) => updateSetting("source", value)}
@@ -385,30 +351,22 @@ export function StudioWorkspace() {
             />
             <PreviewPanel preview={preview} settings={settings} />
           </div>
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(340px,380px)]">
-            <TemplateGallery templates={TEMPLATE_LIBRARY} onSelectTemplate={applyTemplate} />
-            <Tabs value={desktopTab} onValueChange={setDesktopTab} className="space-y-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="style">Style</TabsTrigger>
-                <TabsTrigger value="export">Export</TabsTrigger>
-              </TabsList>
-              <TabsContent value="style" className="mt-0">
-                <StyleControlPanel
-                  settings={settings}
-                  onChange={updateSetting}
-                  onApplyPreset={applyPreset}
-                  onBeautify={cycleBeautifyPreset}
-                />
-              </TabsContent>
-              <TabsContent value="export" className="mt-0">
-                <ExportControlPanel
-                  settings={settings}
-                  onChange={updateSetting}
-                  onApplyResolution={applyResolution}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+          <StyleControlPanel
+            settings={settings}
+            onChange={updateSetting}
+            onApplyPreset={applyPreset}
+            onBeautify={cycleBeautifyPreset}
+          />
+        </div>
+
+        <div className="mt-6">
+          <ExportCenter
+            settings={settings}
+            onChange={updateSetting}
+            onApplyResolution={applyResolution}
+            onExport={handleExport}
+            disabled={!preview.svg}
+          />
         </div>
 
         <div className="pointer-events-none sticky bottom-4 mt-6 lg:hidden">
@@ -421,22 +379,14 @@ export function StudioWorkspace() {
               <Link2 className="h-4 w-4" />
               Share
             </Button>
-            <Button size="sm" onClick={() => setExportDialogOpen(true)}>
-              <Download className="h-4 w-4" />
-              Export
+            <Button size="sm" asChild>
+              <a href="#output-center">
+                <Download className="h-4 w-4" />
+                Output
+              </a>
             </Button>
           </div>
         </div>
-
-        <ExportDialog
-          open={exportDialogOpen}
-          onOpenChange={setExportDialogOpen}
-          settings={settings}
-          onChange={updateSetting}
-          onApplyResolution={applyResolution}
-          onExport={handleExport}
-          disabled={!preview.svg}
-        />
       </div>
     </section>
   );
