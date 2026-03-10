@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { PwaProvider } from "@/components/providers/pwa-provider";
 import { ToasterProvider } from "@/components/providers/toaster-provider";
+import { siteConfig } from "@/lib/site";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -16,39 +17,66 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://mermaidflow.studio"),
+  metadataBase: new URL(siteConfig.url),
   title: {
-    default: "Mermaid Flow Studio",
-    template: "%s | Mermaid Flow Studio"
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.name}`
   },
-  description:
-    "Convert Mermaid flowchart text into polished diagrams instantly. Preview, style, and export SVG, PNG, JPG, or PDF entirely in the browser with offline-ready support.",
-  applicationName: "Mermaid Flow Studio",
+  description: siteConfig.description,
+  applicationName: siteConfig.name,
   keywords: [
     "Mermaid",
     "flowchart generator",
     "diagram export",
     "offline mermaid editor",
     "Mermaid SVG export",
-    "PWA diagram tool"
+    "PWA diagram tool",
+    "Mermaid flowchart editor",
+    "Mermaid diagram generator",
+    "browser based diagram export"
   ],
+  authors: [{ name: "Prabhu Tools" }],
+  creator: "Prabhu Tools",
+  publisher: "Prabhu Tools",
   category: "developer tools",
+  manifest: "/manifest.webmanifest",
+  referrer: "origin-when-cross-origin",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false
+  },
   alternates: {
     canonical: "/"
   },
   openGraph: {
     type: "website",
     url: "/",
-    siteName: "Mermaid Flow Studio",
-    title: "Mermaid Flow Studio",
+    siteName: siteConfig.name,
+    locale: "en_US",
+    title: siteConfig.title,
     description:
-      "A private, browser-based Mermaid flowchart editor with live preview, presets, and high-quality exports."
+      "A private, browser-based Mermaid flowchart editor with live preview, presets, and high-quality exports.",
+    images: [
+      {
+        url: siteConfig.ogImage,
+        width: 1200,
+        height: 630,
+        alt: "Mermaid Flow Studio social preview card"
+      }
+    ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mermaid Flow Studio",
+    title: siteConfig.title,
     description:
-      "Write Mermaid flowchart syntax, refine the visual style, and export production-ready diagrams without leaving the browser."
+      "Write Mermaid flowchart syntax, refine the visual style, and export production-ready diagrams without leaving the browser.",
+    images: [siteConfig.ogImage]
+  },
+  appleWebApp: {
+    capable: true,
+    title: siteConfig.shortName,
+    statusBarStyle: "black-translucent"
   },
   icons: {
     icon: [
@@ -64,7 +92,9 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: light)", color: "#f6f4ef" },
     { media: "(prefers-color-scheme: dark)", color: "#050816" }
   ],
-  colorScheme: "light dark"
+  colorScheme: "light dark",
+  width: "device-width",
+  initialScale: 1
 };
 
 export default function RootLayout({

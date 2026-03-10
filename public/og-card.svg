@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" rx="40" fill="#07111F"/>
+  <rect width="1200" height="630" rx="40" fill="url(#b)"/>
+  <g opacity=".9">
+    <circle cx="1032" cy="110" r="180" fill="url(#c)"/>
+    <circle cx="164" cy="548" r="220" fill="url(#d)"/>
+  </g>
+  <rect x="66" y="66" width="1068" height="498" rx="32" fill="rgba(8,15,32,0.72)" stroke="rgba(255,255,255,0.08)"/>
+  <rect x="108" y="122" width="408" height="316" rx="28" fill="#071827" stroke="rgba(255,255,255,0.08)"/>
+  <rect x="146" y="176" width="124" height="54" rx="16" fill="#F8FAFC" fill-opacity=".96"/>
+  <rect x="346" y="176" width="124" height="54" rx="16" fill="#F8FAFC" fill-opacity=".96"/>
+  <rect x="246" y="292" width="124" height="54" rx="16" fill="#F8FAFC" fill-opacity=".96"/>
+  <path d="M270 203h76M370 257v35M270 319h76M208 230v62" stroke="#8B5CF6" stroke-linecap="round" stroke-width="14"/>
+  <rect x="564" y="132" width="258" height="38" rx="19" fill="rgba(125,211,252,0.14)" stroke="rgba(125,211,252,0.18)"/>
+  <text x="588" y="157" fill="#B6C8E6" font-family="Space Grotesk, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="2.8">OFFLINE-READY MERMAID EDITOR</text>
+  <text x="564" y="254" fill="#F8FAFC" font-family="Space Grotesk, Arial, sans-serif" font-size="64" font-weight="700">
+    <tspan x="564" dy="0">Mermaid Flow</tspan>
+    <tspan x="564" dy="74">Studio</tspan>
+  </text>
+  <text x="564" y="392" fill="#9FB0CF" font-family="Space Grotesk, Arial, sans-serif" font-size="28" font-weight="500">
+    <tspan x="564" dy="0">Write Mermaid flowcharts, preview instantly,</tspan>
+    <tspan x="564" dy="42">and export SVG, PNG, JPG, or PDF in-browser.</tspan>
+  </text>
+  <rect x="564" y="452" width="166" height="54" rx="18" fill="#0EA5E9"/>
+  <text x="596" y="486" fill="#FFFFFF" font-family="Space Grotesk, Arial, sans-serif" font-size="24" font-weight="700">Start editing</text>
+  <rect x="748" y="452" width="196" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)"/>
+  <text x="784" y="486" fill="#D6E5FA" font-family="Space Grotesk, Arial, sans-serif" font-size="24" font-weight="700">Private workflow</text>
+  <defs>
+    <linearGradient id="b" x1="38" x2="1116" y1="42" y2="598" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#07111F"/>
+      <stop offset=".48" stop-color="#0A1830"/>
+      <stop offset="1" stop-color="#173253"/>
+    </linearGradient>
+    <radialGradient id="c" cx="0" cy="0" r="1" gradientTransform="translate(1032 110) rotate(90) scale(180)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0EA5E9" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#0EA5E9" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="d" cx="0" cy="0" r="1" gradientTransform="translate(164 548) rotate(90) scale(220)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B5CF6" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>
