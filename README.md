@@ -46,6 +46,30 @@ npm run build
 npm run start
 ```
 
+## Deploy to Cloudflare Pages
+
+This project is configured for static export deployment on Cloudflare Pages.
+
+1. Push the repository to GitHub.
+2. In Cloudflare, go to `Workers & Pages` and create a new `Pages` project from that repo.
+3. Use these build settings:
+
+   ```text
+   Framework preset: None
+   Build command: npm install && npm run build
+   Build output directory: out
+   Root directory: /
+   Node.js version: 20 or newer
+   ```
+
+4. Deploy. Cloudflare will publish the generated `out/` directory to your `*.pages.dev` domain.
+
+Notes:
+
+- `next.config.ts` uses `output: "export"` so Next.js emits a static site into `out/`.
+- Metadata routes (`manifest`, `robots`, `sitemap`) are forced static to support export mode.
+- Core Mermaid rendering and export remain fully client-side after deployment.
+
 ## Offline support
 
 - `public/sw.js` caches the app shell and same-origin runtime assets.
