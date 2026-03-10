@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+:root {
+  --background: #f6f4ef;
+  --foreground: #102036;
+  --muted-foreground: #546277;
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --border: rgba(16, 32, 54, 0.12);
+  --ring: rgba(10, 132, 255, 0.38);
+  --hero-start: #faf7f2;
+  --hero-end: #d9ecff;
+}
+
+.dark {
+  --background: #050816;
+  --foreground: #f3f7ff;
+  --muted-foreground: #9fb0cf;
+  --surface: rgba(10, 15, 30, 0.72);
+  --surface-strong: rgba(10, 15, 30, 0.92);
+  --border: rgba(255, 255, 255, 0.1);
+  --ring: rgba(99, 179, 237, 0.36);
+  --hero-start: #060b19;
+  --hero-end: #0d1f38;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(68, 152, 255, 0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(125, 211, 252, 0.11), transparent 24%),
+    linear-gradient(180deg, var(--hero-start) 0%, var(--background) 32%, var(--background) 100%);
+  color: var(--foreground);
+}
+
+::selection {
+  background: rgba(61, 130, 246, 0.22);
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  outline-color: var(--ring);
+}
+
+.surface-card {
+  @apply rounded-[28px] border bg-[var(--surface)] shadow-[0_24px_80px_-32px_rgba(15,23,42,0.35)] backdrop-blur-xl;
+  border-color: var(--border);
+}
+
+.surface-card-strong {
+  @apply rounded-[28px] border bg-[var(--surface-strong)] shadow-[0_24px_80px_-32px_rgba(15,23,42,0.45)] backdrop-blur-xl;
+  border-color: var(--border);
+}
+
+.surface-grid {
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.hero-glow {
+  position: absolute;
+  inset: auto auto 0 0;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.25), transparent 70%);
+  filter: blur(32px);
+  pointer-events: none;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
