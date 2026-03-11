@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { ArrowRight, Download, Shield, WifiOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 
 const StudioWorkspace = dynamic(
   () => import("@/components/studio/studio-workspace").then((mod) => mod.StudioWorkspace),
@@ -61,21 +62,7 @@ export function AppShell() {
         <div className="hero-glow right-0 top-10 opacity-70" />
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 pb-14 pt-8 sm:px-6 lg:px-8 lg:pb-18 lg:pt-10">
           <header className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="ink-panel flex h-14 w-14 items-center justify-center text-white shadow-[0_20px_48px_-28px_rgba(15,23,42,0.7)]">
-                <div className="grid gap-1">
-                  <span className="h-2 w-2 rounded-full bg-sky-300" />
-                  <span className="ml-4 h-2 w-2 rounded-full bg-orange-300" />
-                  <span className="h-2 w-6 rounded-full bg-white/70" />
-                </div>
-              </div>
-              <div>
-                <p className="text-base font-semibold tracking-tight">Mermaid Flow Studio</p>
-                <p className="text-sm text-[var(--muted-foreground)]">
-                  Cleaner Mermaid diagrams, faster
-                </p>
-              </div>
-            </div>
+            <Logo />
             <Button asChild variant="secondary">
               <a href="#studio">
                 Open studio

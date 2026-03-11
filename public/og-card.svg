@@ -1,30 +1,64 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
   <rect width="1200" height="630" rx="40" fill="#07111F"/>
   <rect width="1200" height="630" rx="40" fill="url(#b)"/>
+  
+  <!-- Background effects -->
   <g opacity=".9">
     <circle cx="1032" cy="110" r="180" fill="url(#c)"/>
     <circle cx="164" cy="548" r="220" fill="url(#d)"/>
   </g>
+  
+  <!-- Main content area -->
   <rect x="66" y="66" width="1068" height="498" rx="32" fill="rgba(8,15,32,0.72)" stroke="rgba(255,255,255,0.08)"/>
-  <rect x="108" y="122" width="408" height="316" rx="28" fill="#071827" stroke="rgba(255,255,255,0.08)"/>
-  <rect x="146" y="176" width="124" height="54" rx="16" fill="#F8FAFC" fill-opacity=".96"/>
-  <rect x="346" y="176" width="124" height="54" rx="16" fill="#F8FAFC" fill-opacity=".96"/>
-  <rect x="246" y="292" width="124" height="54" rx="16" fill="#F8FAFC" fill-opacity=".96"/>
-  <path d="M270 203h76M370 257v35M270 319h76M208 230v62" stroke="#8B5CF6" stroke-linecap="round" stroke-width="14"/>
-  <rect x="564" y="132" width="258" height="38" rx="19" fill="rgba(125,211,252,0.14)" stroke="rgba(125,211,252,0.18)"/>
-  <text x="588" y="157" fill="#B6C8E6" font-family="Space Grotesk, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="2.8">OFFLINE-READY MERMAID EDITOR</text>
-  <text x="564" y="254" fill="#F8FAFC" font-family="Space Grotesk, Arial, sans-serif" font-size="64" font-weight="700">
-    <tspan x="564" dy="0">Mermaid Flow</tspan>
-    <tspan x="564" dy="74">Studio</tspan>
+  
+  <!-- Large Mermaid Character on left -->
+  <g transform="translate(120, 160)">
+    <!-- Mermaid Hair -->
+    <ellipse cx="150" cy="85" rx="90" ry="70" fill="#00D4AA"/>
+    <path d="M60 85c0-38 40-70 90-70s90 32 90 70c0 18-10 36-30 42-20 6-40 3-60 3s-40-3-60-3c-20-6-30-24-30-42z" fill="#00B894"/>
+    
+    <!-- Face -->
+    <circle cx="150" cy="110" r="55" fill="#FDBCB4" stroke="#2D3748" stroke-width="4"/>
+    
+    <!-- Eyes -->
+    <ellipse cx="130" cy="95" rx="6" ry="12" fill="#2D3748"/>
+    <ellipse cx="170" cy="95" rx="6" ry="12" fill="#2D3748"/>
+    
+    <!-- Mouth -->
+    <path d="M140 125c6 8 14 8 20 0" stroke="#2D3748" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- Cheeks -->
+    <circle cx="110" cy="115" r="8" fill="#FF6B9D" opacity="0.7"/>
+    <circle cx="190" cy="115" r="8" fill="#FF6B9D" opacity="0.7"/>
+    
+    <!-- Body -->
+    <ellipse cx="150" cy="190" rx="45" ry="32" fill="#FF6B9D" stroke="#2D3748" stroke-width="4"/>
+    
+    <!-- Tail -->
+    <ellipse cx="150" cy="250" rx="55" ry="20" fill="#FFD93D" stroke="#2D3748" stroke-width="4"/>
+    <path d="M205 250c18 0 27 10 24 20s-18 10-35 0" fill="#FFD93D" stroke="#2D3748" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+  
+  <!-- Right side content -->
+  <rect x="540" y="132" width="320" height="38" rx="19" fill="rgba(125,211,252,0.14)" stroke="rgba(125,211,252,0.18)"/>
+  <text x="564" y="157" fill="#B6C8E6" font-family="Space Grotesk, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="2.8">OFFLINE-READY MERMAID EDITOR</text>
+  
+  <text x="540" y="254" fill="#F8FAFC" font-family="Space Grotesk, Arial, sans-serif" font-size="64" font-weight="700">
+    <tspan x="540" dy="0">Mermaid Flow</tspan>
+    <tspan x="540" dy="74">Studio</tspan>
   </text>
-  <text x="564" y="392" fill="#9FB0CF" font-family="Space Grotesk, Arial, sans-serif" font-size="28" font-weight="500">
-    <tspan x="564" dy="0">Write Mermaid flowcharts, preview instantly,</tspan>
-    <tspan x="564" dy="42">and export SVG, PNG, JPG, or PDF in-browser.</tspan>
+  
+  <text x="540" y="392" fill="#9FB0CF" font-family="Space Grotesk, Arial, sans-serif" font-size="28" font-weight="500">
+    <tspan x="540" dy="0">Write Mermaid flowcharts, preview instantly,</tspan>
+    <tspan x="540" dy="42">and export SVG, PNG, JPG, or PDF in-browser.</tspan>
   </text>
-  <rect x="564" y="452" width="166" height="54" rx="18" fill="#0EA5E9"/>
-  <text x="596" y="486" fill="#FFFFFF" font-family="Space Grotesk, Arial, sans-serif" font-size="24" font-weight="700">Start editing</text>
-  <rect x="748" y="452" width="196" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)"/>
-  <text x="784" y="486" fill="#D6E5FA" font-family="Space Grotesk, Arial, sans-serif" font-size="24" font-weight="700">Private workflow</text>
+  
+  <rect x="540" y="452" width="166" height="54" rx="18" fill="#0EA5E9"/>
+  <text x="572" y="486" fill="#FFFFFF" font-family="Space Grotesk, Arial, sans-serif" font-size="24" font-weight="700">Start editing</text>
+  
+  <rect x="724" y="452" width="196" height="54" rx="18" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.12)"/>
+  <text x="760" y="486" fill="#D6E5FA" font-family="Space Grotesk, Arial, sans-serif" font-size="24" font-weight="700">Private workflow</text>
+  
   <defs>
     <linearGradient id="b" x1="38" x2="1116" y1="42" y2="598" gradientUnits="userSpaceOnUse">
       <stop stop-color="#07111F"/>

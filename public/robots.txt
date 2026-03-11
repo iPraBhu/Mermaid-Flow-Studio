@@ -1,0 +1,22 @@
+# Robots.txt for Mermaid Flow Studio
+# https://mermaid-studio.prabhu-tools.com/
+
+User-agent: *
+Allow: /
+
+# Optimize crawling
+Allow: /manifest.webmanifest
+Allow: /*.svg$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.webp$
+Allow: /*.ico$
+
+# Block unnecessary files
+Disallow: /_next/static/chunks/
+Disallow: /sw.js
+Disallow: /offline.html
+
+# Sitemap location
+Sitemap: https://mermaid-studio.prabhu-tools.com/sitemap.xml
