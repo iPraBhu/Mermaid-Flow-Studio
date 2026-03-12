@@ -8,7 +8,8 @@ import {
   Move,
   Plus,
   RefreshCcw,
-  ScanSearch
+  ScanSearch,
+  X
 } from "lucide-react";
 import {
   Dialog,
@@ -267,11 +268,22 @@ export function PreviewPanel({ preview, settings }: PreviewPanelProps) {
 
       <Dialog open={fullscreen} onOpenChange={setFullscreen}>
         <DialogContent className="flex h-[min(92vh,960px)] w-[min(96vw,1280px)] max-w-none flex-col overflow-hidden p-5 md:p-6">
-          <DialogHeader className="mb-2">
-            <DialogTitle>Fullscreen preview</DialogTitle>
-            <DialogDescription>
-              Fit the whole diagram first, then zoom and pan for inspection.
-            </DialogDescription>
+          <DialogHeader className="mb-2 flex-row items-start justify-between gap-4 pr-1">
+            <div className="space-y-2">
+              <DialogTitle>Fullscreen preview</DialogTitle>
+              <DialogDescription>
+                Fit the whole diagram first, then zoom and pan for inspection.
+              </DialogDescription>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              onClick={() => setFullscreen(false)}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close fullscreen preview</span>
+            </Button>
           </DialogHeader>
           <DiagramSurface
             key={`${previewKey}-fullscreen`}

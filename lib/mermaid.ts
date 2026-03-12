@@ -209,6 +209,7 @@ function buildMermaidConfig(
       primaryColor: accent,
       primaryBorderColor: mixHex(accent, "#020617", 0.24),
       primaryTextColor: isDark(accent) ? "#ffffff" : "#08111f",
+      nodeTextColor: textColor,
       secondaryColor: mixHex(accent, surface === "transparent" ? "#ffffff" : surface, 0.76),
       tertiaryColor: mixHex(accent, surface === "transparent" ? "#f8fafc" : surface, 0.9),
       lineColor: mixHex(accent, "#0f172a", 0.2),
