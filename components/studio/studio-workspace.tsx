@@ -24,6 +24,7 @@ import { TemplateGallery } from "@/components/studio/template-gallery";
 import { PreviewPanel } from "@/components/studio/preview-panel";
 import { StyleControlPanel } from "@/components/studio/control-panel";
 import { ExportCenter } from "@/components/studio/export-dialog";
+import { SyntaxReference } from "@/components/studio/syntax-reference";
 
 const initialPreviewState: PreviewState = {
   svg: null,
@@ -224,6 +225,14 @@ export function StudioWorkspace() {
     toast.success(`${file.name} imported`);
   };
 
+  const handleInsertExample = (code: string) => {
+    setSettings((current) => ({
+      ...current,
+      source: code
+    }));
+    toast.success("Example inserted into editor");
+  };
+
   return (
     <section
       id="studio"
@@ -317,6 +326,7 @@ export function StudioWorkspace() {
             </TabsList>
             <TabsContent value="editor" className="space-y-6">
               <TemplateGallery templates={TEMPLATE_LIBRARY} onSelectTemplate={applyTemplate} />
+              <SyntaxReference onInsertExample={handleInsertExample} />
               <EditorPanel
                 source={settings.source}
                 onSourceChange={(value) => updateSetting("source", value)}
@@ -342,13 +352,16 @@ export function StudioWorkspace() {
         <div className="mt-6 hidden gap-6 lg:grid">
           <TemplateGallery templates={TEMPLATE_LIBRARY} onSelectTemplate={applyTemplate} />
           <div className="grid gap-6 xl:grid-cols-[minmax(320px,380px)_minmax(0,1fr)]">
-            <EditorPanel
-              source={settings.source}
-              onSourceChange={(value) => updateSetting("source", value)}
-              onCopy={handleCopySource}
-              onReset={handleReset}
-              onImport={handleImportClick}
-            />
+            <div className="space-y-4">
+              <SyntaxReference onInsertExample={handleInsertExample} />
+              <EditorPanel
+                source={settings.source}
+                onSourceChange={(value) => updateSetting("source", value)}
+                onCopy={handleCopySource}
+                onReset={handleReset}
+                onImport={handleImportClick}
+              />
+            </div>
             <PreviewPanel preview={preview} settings={settings} />
           </div>
           <StyleControlPanel
