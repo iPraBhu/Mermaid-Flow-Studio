@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useCallback } from "react";
 import {
   Expand,
   LoaderCircle,
@@ -238,6 +238,21 @@ export function PreviewPanel({ preview, settings }: PreviewPanelProps) {
     ? `${preview.width}-${preview.height}-${preview.svg.length}`
     : "empty";
 
+  const handleCloseFullscreen = useCallback(() => {
+    setFullscreen(false);
+    // Force a delay to ensure state update
+    setTimeout(() => setFullscreen(false), 0);
+  }, []);
+
+  const handleDialogOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      // Force close
+      setFullscreen(false);
+    } else {
+      setFullscreen(open);
+    }
+  }, []);
+
   return (
     <>
       <Card className="overflow-hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.38),rgba(255,255,255,0.22))] dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))]">
@@ -266,33 +281,38 @@ export function PreviewPanel({ preview, settings }: PreviewPanelProps) {
         </CardContent>
       </Card>
 
-      <Dialog open={fullscreen} onOpenChange={setFullscreen}>
-        <DialogContent className="flex h-[min(92vh,960px)] w-[min(96vw,1280px)] max-w-none flex-col overflow-hidden p-5 md:p-6">
-          <DialogHeader className="mb-2 flex-row items-start justify-between gap-4 pr-1">
-            <div className="space-y-2">
-              <DialogTitle>Fullscreen preview</DialogTitle>
-              <DialogDescription>
-                Fit the whole diagram first, then zoom and pan for inspection.
-              </DialogDescription>
+      {fullscreen && (
+        <Dialog open={true} onOpenChange={handleDialogOpenChange}>
+          <DialogContent className="flex h-[min(92vh,960px)] w-[min(96vw,1280px)] max-w-none flex-col overflow-hidden p-5 md:p-6">
+            <div className="mb-2 flex items-start justify-between gap-4">
+              <DialogHeader className="text-left">
+                <DialogTitle>Fullscreen preview</DialogTitle>
+                <DialogDescription>
+                  Fit the whole diagram first, then zoom and pan for inspection.
+                </DialogDescription>
+              </DialogHeader>
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+                onClick={handleCloseFullscreen}
+                className="shrink-0 self-start"
+                aria-label="Close fullscreen preview"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              onClick={() => setFullscreen(false)}
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close fullscreen preview</span>
-            </Button>
-          </DialogHeader>
-          <DiagramSurface
-            key={`${previewKey}-fullscreen`}
-            preview={preview}
-            settings={settings}
-            fullscreen
-          />
-        </DialogContent>
-      </Dialog>
+            <div className="flex-1 overflow-auto">
+              <DiagramSurface
+                key={`${previewKey}-fullscreen`}
+                preview={preview}
+                settings={settings}
+                fullscreen
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }

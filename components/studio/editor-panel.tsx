@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Copy, Expand, FileUp, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -103,6 +104,21 @@ export function EditorPanel({
   const [fullscreen, setFullscreen] = useState(false);
   const lineCount = source.split("\n").length;
 
+  const handleCloseFullscreen = useCallback(() => {
+    setFullscreen(false);
+    // Force a delay to ensure state update
+    setTimeout(() => setFullscreen(false), 0);
+  }, []);
+
+  const handleDialogOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      // Force close
+      setFullscreen(false);
+    } else {
+      setFullscreen(open);
+    }
+  }, []);
+
   return (
     <>
       <Card className="overflow-hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.4),rgba(255,255,255,0.2))] dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))]">
@@ -145,35 +161,40 @@ export function EditorPanel({
         </CardContent>
       </Card>
 
-      <Dialog open={fullscreen} onOpenChange={setFullscreen}>
-        <DialogContent className="flex h-[min(92vh,960px)] w-[min(96vw,1200px)] max-w-none flex-col overflow-hidden p-5 md:p-6">
-          <DialogHeader className="mb-2 flex-row items-start justify-between gap-4 pr-1">
-            <div className="space-y-2">
-              <DialogTitle>Fullscreen editor</DialogTitle>
-              <DialogDescription>
-                Edit Mermaid source in a larger workspace without leaving the studio.
-              </DialogDescription>
+      {fullscreen && (
+        <Dialog open={true} onOpenChange={handleDialogOpenChange}>
+          <DialogContent className="flex h-[min(92vh,960px)] w-[min(96vw,1200px)] max-w-none flex-col overflow-hidden p-5 md:p-6">
+            <div className="mb-2 flex items-start justify-between gap-4">
+              <DialogHeader className="text-left">
+                <DialogTitle>Fullscreen editor</DialogTitle>
+                <DialogDescription>
+                  Edit Mermaid source in a larger workspace without leaving the studio.
+                </DialogDescription>
+              </DialogHeader>
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+                onClick={handleCloseFullscreen}
+                className="shrink-0 self-start"
+                aria-label="Close fullscreen editor"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              onClick={() => setFullscreen(false)}
-            >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close fullscreen editor</span>
-            </Button>
-          </DialogHeader>
-          <EditorBody
-            source={source}
-            onSourceChange={onSourceChange}
-            onCopy={onCopy}
-            onReset={onReset}
-            onImport={onImport}
-            fullscreen
-          />
-        </DialogContent>
-      </Dialog>
+            <div className="flex-1 overflow-auto">
+              <EditorBody
+                source={source}
+                onSourceChange={onSourceChange}
+                onCopy={onCopy}
+                onReset={onReset}
+                onImport={onImport}
+                fullscreen
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
