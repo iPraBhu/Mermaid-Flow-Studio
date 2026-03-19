@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test BR Tag Auto-Normalization</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        pre {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .success {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            color: #166534;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>✅ BR Tag Auto-Normalization Test</h1>
+    
+    <div class="test-section">
+        <h2>Your Original Flowchart (With Raw &lt;br&gt; Tags)</h2>
+        <p>You can now paste this directly into Mermaid Flow Studio without any manual encoding:</p>
+        <pre>flowchart TB
+  subgraph INPUT["Inputs"]
+    B["branch / branches<br>(depot path(s) or names)"]
+    J["jira<br>(one or more keys)"]
+  end
+
+  subgraph RESOLVE["Resolve and validate"]
+    R1["Trim / split comma-separated paths and keys"]
+    R2["Infer full depot paths<br>(reference.md patterns)"]
+    R3{"At least one path<br>and one Jira key?"}
+    R4["Ask user for missing info"]
+  end
+
+  subgraph JIRA["Jira workflow (MCP)"]
+    J1["Fetch issues, comments, subtasks"]
+    J2["Parse acceptance criteria<br>and explicit requirements"]
+    J3["1 row per AC<br>(or AC-equivalent bullet)"]
+    J4["Build column values:<br>JIRA_ID, Description,<br>TestCase, Expected Results, etc."]
+  end
+
+  subgraph P4["Perforce workflow (MCP, per path)"]
+    P0["For each resolved depot path"]
+    P1["Find branch creation CL"]
+    P2["List CLs after branch point"]
+    P3["Drop merge-only integrations"]
+    P4B["Review branch-authored diffs"]
+    P5["Union: behaviors, APIs, errors,<br>integration touchpoints"]
+  end
+
+  subgraph MERGE["Merge"]
+    M1["Enrich Test Data / Comments<br>(paths, CL hints, inferred, etc.)"]
+    M2["Do not duplicate rows<br>per branch - still 1 row per AC"]
+  end
+
+  subgraph OUT["Output"]
+    O1["rows.json<br>rows: 13-cell arrays"]
+    O2["pip install openpyxl<br>(if needed)"]
+    O3["python scripts/write_testcases_xlsx.py<br>OUT.xlsx rows.json"]
+    O4["Formatted .xlsx<br>(widths, wrap, header, freeze, filter)"]
+    O5["Fallback: UTF-8 CSV<br>plus note in chat"]
+  end
+
+  CHAT["Chat: path, row count,<br>keys, branches, caveats"]
+
+  B --> R1
+  J --> R1
+  R1 --> R2 --> R3
+  R3 -->|no| R4
+  R3 -->|yes| J1
+  R4 -.-> R1
+
+  J1 --> J2 --> J3 --> J4
+  R3 -->|yes| P0
+  P0 --> P1 --> P2 --> P3 --> P4B --> P5
+
+  J4 --> M1
+  P5 --> M1 --> M2 --> O1
+
+  O1 --> O2 --> O3
+  O3 -->|success| O4
+  O3 -->|fallback| O5
+
+  O4 --> CHAT
+  O5 --> CHAT</pre>
+
+        <div class="success">
+            ✅ <strong>This will now work automatically!</strong> The app detects all &lt;br&gt;, &lt;br/&gt;, and &lt;br /&gt; tags within node labels and normalizes them so Mermaid renders them as <strong>actual line breaks</strong> (not visible text).
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>How It Works</h2>
+        <p>The improved <code>normalizeBrTags()</code> function:</p>
+        <ul>
+            <li>Uses a stack-based parser to track when code is inside node labels</li>
+            <li>Automatically detects labels within <code>[]</code>, <code>()</code>, <code>{}</code>, and <code>""</code></li>
+            <li>Normalizes all <code>&lt;br&gt;</code> variants to <code>&lt;br/&gt;</code> within labels</li>
+            <li>Mermaid then renders these as <strong>actual line breaks</strong> in the diagram</li>
+            <li>Preserves all other syntax unchanged</li>
+            <li>Works across multiple lines and with nested structures</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Supported Break Tag Formats</h2>
+        <pre>Node1["Line 1<br>Line 2"]           → Renders as actual line break ✓
+Node2["Line 1<br/>Line 2"]          → Renders as actual line break ✓
+Node3["Line 1<br />Line 2"]         → Renders as actual line break ✓
+Node4["Line 1<BR>Line 2"]           → Renders as actual line break ✓ (case-insensitive)</pre>
+        <p><strong>Result:</strong> All variations are normalized and rendered as proper line breaks in the final diagram. You'll see multi-line text in the nodes, not the literal "&lt;br&gt;" text.</p>
+    </div>
+</body>
+</html>

@@ -1,22 +1,22 @@
-## Fixed Version of Your Flowchart
+## Automatic HTML Break Tag Handling
 
-**The issue**: Your `<br/>` tags were being treated as actual HTML in the preview instead of Mermaid syntax.
+**The Solution**: The app now **automatically normalizes** `<br>` tags in your Mermaid flowcharts to render as **actual line breaks**! 
 
-**The solution**: The app now automatically HTML-encodes these tags. Here are working versions:
+You can use `<br>`, `<br/>`, or `<br />` directly in your node labels, and the app will normalize them to a consistent format that Mermaid interprets as line breaks. The rendered output will show proper line breaks, not the literal text.
 
-### Version 1: HTML-encoded breaks (RECOMMENDED)
+### Example - Just Use Normal `<br>` Tags:
 ```
 flowchart TD
     A([User opens app in browser]) --> B[Initialize shared browser-session inactivity manager]
-    B --> C[Track activity from all open tabs&lt;br/&gt;click / keypress / mousemove / scroll / API interaction]
+    B --> C[Track activity from all open tabs<br/>click / keypress / mousemove / scroll / API interaction]
     
     C --> D{Activity detected in any tab?}
     D -->|Yes| E[Broadcast activity to all tabs]
-    E --> F[Reset shared inactivity timer&lt;br/&gt;for the whole browser session]
+    E --> F[Reset shared inactivity timer<br/>for the whole browser session]
     F --> G[User remains active]
     G --> C
 
-    D -->|No| H{Has configured inactivity period elapsed&lt;br/&gt;with no activity in any tab?}
+    D -->|No| H{Has configured inactivity period elapsed<br/>with no activity in any tab?}
     H -->|No| C
     H -->|Yes| I[Mark browser session as inactive]
     
@@ -40,10 +40,19 @@ flowchart TD
     style M fill:#f5d0fe,stroke:#a21caf,stroke-width:2px,color:#0f172a
 ```
 
-### Your original flowchart should also work now
-**The app will automatically encode the HTML tags for you!** Just paste your original version and it should render correctly.
+## How It Works
+The rendering engine automatically detects `<br>` tags within node labels and normalizes them to `<br/>` before processing. Mermaid then interprets these as line break instructions and renders them as **actual line breaks in the diagram** (not as visible text). This happens transparently behind the scenes, so you can write natural Mermaid syntax without worrying about HTML encoding.
 
-## What I fixed in the code:
-1. Added `encodeHtmlInLabels()` function to HTML-encode `<br/>` tags
-2. Enhanced `buildRenderAttempts()` to try multiple fallback strategies
-3. The app now tries encoded version first, then original, then fallbacks
+### Supported Formats
+- `<br>` - Basic HTML break
+- `<br/>` - Self-closing break
+- `<br />` - Self-closing with space
+
+All variations are automatically detected and normalized within:
+- Square brackets: `[label<br/>text]`
+- Parentheses: `(label<br/>text)` 
+- Curly braces: `{label<br/>text}`
+- Quotes: `"label<br/>text"`
+
+## Technical Details
+The `normalizeBrTags()` function uses a stack-based parser to track label contexts and selectively normalize only the `<br>` tags that appear within Mermaid node labels to `<br/>`. Mermaid's htmlLabels feature then renders these as actual line breaks in the SVG output, preserving all other syntax unchanged.
