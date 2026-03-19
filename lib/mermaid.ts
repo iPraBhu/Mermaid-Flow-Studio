@@ -22,69 +22,6 @@ function normalizeMermaidSource(source: string) {
   return source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
 }
 
-function normalizeBrTags(source: string) {
-  // Normalize all variations of <br> tags to <br/> so Mermaid renders them as actual line breaks
-  // This includes <br>, <br/>, <br />, <BR>, etc.
-  // We normalize them to a consistent format that Mermaid understands
-  
-  let result = '';
-  let i = 0;
-  let inLabel = false;
-  const labelStack: string[] = []; // Track nested delimiters
-  
-  // Map opening to closing delimiters
-  const closingDelimiters: Record<string, string> = {
-    '[': ']',
-    '(': ')',
-    '{': '}'
-  };
-  
-  while (i < source.length) {
-    const char = source[i];
-    const remaining = source.substring(i);
-    
-    // Check for <br> tags when inside a label and normalize them
-    if (inLabel) {
-      const brMatch = remaining.match(/^<br\s*\/?>/i);
-      if (brMatch) {
-        result += '<br/>';  // Normalize to consistent format for Mermaid
-        i += brMatch[0].length;
-        continue;
-      }
-    }
-    
-    // Check for opening delimiters that start labels
-    if ('[({'.includes(char)) {
-      labelStack.push(closingDelimiters[char]);
-      inLabel = true;
-    }
-    // Check for closing delimiters
-    else if (labelStack.length > 0 && char === labelStack[labelStack.length - 1]) {
-      labelStack.pop();
-      if (labelStack.length === 0) {
-        inLabel = false;
-      }
-    }
-    // Handle quoted strings
-    else if (char === '"' && (i === 0 || source[i - 1] !== '\\')) {
-      if (labelStack[labelStack.length - 1] === '"') {
-        labelStack.pop();
-        if (labelStack.length === 0) {
-          inLabel = false;
-        }
-      } else {
-        labelStack.push('"');
-        inLabel = true;
-      }
-    }
-    
-    result += char;
-    i++;
-  }
-  
-  return result;
-}
-
 function stripHtmlBreaks(source: string) {
   // Replace HTML breaks with spaces for fallback compatibility 
   return source.replace(/<br\s*\/?>/gi, " ");
@@ -92,15 +29,11 @@ function stripHtmlBreaks(source: string) {
 
 function buildRenderAttempts(source: string) {
   const normalized = normalizeMermaidSource(source);
-  const withNormalizedBrs = normalizeBrTags(normalized);
   const withoutBreaks = stripHtmlBreaks(normalized);
   
   const attempts: RenderAttempt[] = [
-    // Try with normalized <br/> tags and htmlLabels enabled (preferred)
-    { source: withNormalizedBrs, htmlLabels: true },
-    
-    // Try with normalized <br/> tags and htmlLabels disabled
-    { source: withNormalizedBrs, htmlLabels: false },
+    // Try with original source and htmlLabels enabled (Mermaid handles <br> natively)
+    { source: normalized, htmlLabels: true },
     
     // Try without breaks as fallback
     { source: withoutBreaks, htmlLabels: true },

@@ -1,8 +1,8 @@
 ## Automatic HTML Break Tag Handling
 
-**The Solution**: The app now **automatically normalizes** `<br>` tags in your Mermaid flowcharts to render as **actual line breaks**! 
+**The Solution**: The app now **passes `<br>` tags through as-is**, letting Mermaid's native HTML label rendering handle them correctly!
 
-You can use `<br>`, `<br/>`, or `<br />` directly in your node labels, and the app will normalize them to a consistent format that Mermaid interprets as line breaks. The rendered output will show proper line breaks, not the literal text.
+You can use `<br>`, `<br/>`, or `<br />` directly in your node labels. The app enables Mermaid's `htmlLabels` feature, which interprets these tags as **actual line breaks** in the rendered diagram.
 
 ### Example - Just Use Normal `<br>` Tags:
 ```
@@ -41,18 +41,22 @@ flowchart TD
 ```
 
 ## How It Works
-The rendering engine automatically detects `<br>` tags within node labels and normalizes them to `<br/>` before processing. Mermaid then interprets these as line break instructions and renders them as **actual line breaks in the diagram** (not as visible text). This happens transparently behind the scenes, so you can write natural Mermaid syntax without worrying about HTML encoding.
+The rendering engine passes your Mermaid source through with `<br>` tags intact and enables Mermaid's `htmlLabels` configuration option. This tells Mermaid to interpret HTML tags in labels, including `<br>` tags as line break instructions. The result is **actual line breaks in the diagram** (not visible text).
 
 ### Supported Formats
 - `<br>` - Basic HTML break
-- `<br/>` - Self-closing break
+- `<br/>` - Self-closing break (recommended)
 - `<br />` - Self-closing with space
 
-All variations are automatically detected and normalized within:
+All variations work in:
 - Square brackets: `[label<br/>text]`
 - Parentheses: `(label<br/>text)` 
 - Curly braces: `{label<br/>text}`
 - Quotes: `"label<br/>text"`
 
 ## Technical Details
-The `normalizeBrTags()` function uses a stack-based parser to track label contexts and selectively normalize only the `<br>` tags that appear within Mermaid node labels to `<br/>`. Mermaid's htmlLabels feature then renders these as actual line breaks in the SVG output, preserving all other syntax unchanged.
+The app uses a fallback strategy when rendering:
+1. **First attempt**: Original source with `htmlLabels: true` (handles `<br>` natively)
+2. **Fallback**: Source with breaks removed (replaces `<br>` with spaces)
+
+This ensures your diagram renders successfully even if there are any compatibility issues with HTML tags.
