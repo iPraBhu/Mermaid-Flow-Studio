@@ -160,6 +160,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <StructuredData />
+        <script src="https://analytics.ahrefs.com/analytics.js" data-key="FsMzaxszidK2QzSnBwH/mA" async></script>
       </head>
       <body
         suppressHydrationWarning
