@@ -1,28 +1,52 @@
-## Automatic HTML Break Tag Handling
+## Comprehensive HTML & Special Character Handling
 
-**The Solution**: The app now **passes `<br>` tags through as-is**, letting Mermaid's native HTML label rendering handle them correctly!
+**The Solution**: The app now features **advanced multi-strategy rendering** with comprehensive HTML support, special character handling, and robust fallback mechanisms!
 
-You can use `<br>`, `<br/>`, or `<br />` directly in your node labels. The app enables Mermaid's `htmlLabels` feature, which interprets these tags as **actual line breaks** in the rendered diagram.
+### What's Supported
 
-### Example - Just Use Normal `<br>` Tags:
-```
+#### HTML Tags in Labels
+You can use these HTML tags for rich formatting:
+- `<br>`, `<br/>`, `<br />` - Line breaks
+- `<b>`, `<strong>` - Bold text
+- `<i>`, `<em>` - Italic text  
+- `<u>` - Underlined text
+- `<sup>` - Superscript
+- `<sub>` - Subscript
+- `<span>` - Generic inline container
+
+#### Special Characters & Unicode
+Full support for:
+- **Emoji**: 🚀 ✨ ⭐ ❤️ ✓ ✗
+- **Math symbols**: ∑ ∫ √ ≈ × ÷
+- **International**: äöü, 日本語, العربية
+- **Special**: © ® ™ ° § ¶
+
+#### Safe Automatic Processing
+- HTML entities properly encoded
+- XSS protection via tag sanitization
+- Line endings normalized
+- Whitespace trimmed
+- BOM removed automatically
+
+### Example - Rich Formatting:
+```mermaid
 flowchart TD
     A([User opens app in browser]) --> B[Initialize shared browser-session inactivity manager]
     B --> C[Track activity from all open tabs<br/>click / keypress / mousemove / scroll / API interaction]
     
     C --> D{Activity detected in any tab?}
     D -->|Yes| E[Broadcast activity to all tabs]
-    E --> F[Reset shared inactivity timer<br/>for the whole browser session]
-    F --> G[User remains active]
+    E --> F[<b>Reset</b> shared inactivity timer<br/>for the whole browser session]
+    F --> G[User remains <i>active</i>]
     G --> C
 
-    D -->|No| H{Has configured inactivity period elapsed<br/>with no activity in any tab?}
+    D -->|No| H{Has configured inactivity period elapsed<br/>with <u>no activity</u> in any tab?}
     H -->|No| C
-    H -->|Yes| I[Mark browser session as inactive]
+    H -->|Yes| I[Mark browser session as inactive ❌]
     
     I --> J[Clear access token from local storage]
     J --> K{Choose expiry handling}
-    K -->|Redirect flow| L[Redirect user to login page]
+    K -->|Redirect flow| L[Redirect user to login page 🔒]
     K -->|Inline UX flow| M[Show session expired message]
     
     style A fill:#7dd3fc,stroke:#0369a1,stroke-width:2px,color:#0f172a
@@ -41,22 +65,78 @@ flowchart TD
 ```
 
 ## How It Works
-The rendering engine passes your Mermaid source through with `<br>` tags intact and enables Mermaid's `htmlLabels` configuration option. This tells Mermaid to interpret HTML tags in labels, including `<br>` tags as line break instructions. The result is **actual line breaks in the diagram** (not visible text).
 
-### Supported Formats
-- `<br>` - Basic HTML break
-- `<br/>` - Self-closing break (recommended)
-- `<br />` - Self-closing with space
+### Multi-Strategy Rendering
+The engine uses **6 intelligent fallback strategies** to ensure your diagram renders:
 
-All variations work in:
-- Square brackets: `[label<br/>text]`
-- Parentheses: `(label<br/>text)` 
-- Curly braces: `{label<br/>text}`
-- Quotes: `"label<br/>text"`
+1. **Sanitized HTML** - Safe HTML tags only, dangerous content filtered
+2. **Escaped Characters** - HTML entities properly encoded  
+3. **Original Source** - Tries your exact input with HTML enabled
+4. **Stripped HTML** - Removes all tags as compatibility fallback
+5. **Plain Text Mode** - Disables HTML rendering completely
+6. **Final Attempt** - Last resort with original source
+
+If one strategy fails, the next is automatically tried until one succeeds!
+
+### Intelligent Diagram Detection
+The system automatically detects your diagram type and applies optimal configurations:
+- **Flowcharts/Graphs**: Node spacing, padding, rounded corners
+- **Sequence Diagrams**: Actor mirroring, message margins, wrapping
+- **Gantt Charts**: Timeline styling, section formatting
+- **State Diagrams**: Transition styling, composite states
+- And 10+ other diagram types!
+
+### Built-in Validation
+Before rendering, the system can validate your syntax:
+- Checks for unmatched quotes
+- Detects unclosed HTML tags
+- Validates diagram type syntax
+- Provides helpful error messages
+- Suggests fixes for common issues
+
+## Security & Safety
+
+### XSS Protection
+Dangerous HTML is automatically sanitized:
+- Script tags → converted to visible text
+- Event handlers → stripped
+- Style tags → sanitized
+- Only safe formatting tags allowed
+
+This ensures your diagrams are both feature-rich AND secure.
+
+## Best Practices
+
+### ✅ Recommended:
+```mermaid
+flowchart LR
+    A["Text with <b>bold</b><br/>and line break"] --> B["Math: E=mc<sup>2</sup>"]
+    B --> C["Logo ✓ Success"]
+```
+
+### ⚠️ Tips for Complex Content:
+- Use double quotes for labels with special characters
+- Close all HTML tags: `<b>text</b>` not `<b>text`
+- Escape ampersands: `&amp;` instead of `&`
+- Use HTML entities for `<`, `>`: `&lt;`, `&gt;`
 
 ## Technical Details
-The app uses a fallback strategy when rendering:
-1. **First attempt**: Original source with `htmlLabels: true` (handles `<br>` natively)
-2. **Fallback**: Source with breaks removed (replaces `<br>` with spaces)
 
-This ensures your diagram renders successfully even if there are any compatibility issues with HTML tags.
+See [MERMAID_ROBUSTNESS.md](./MERMAID_ROBUSTNESS.md) for complete technical documentation including:
+- Detailed rendering pipeline
+- All supported diagram types
+- Advanced troubleshooting
+- Performance optimizations
+- Security model
+- API reference
+
+## Error Handling
+
+When rendering fails, you'll receive:
+- ✅ Detected diagram type
+- ✅ Specific error message
+- ✅ Which strategy failed and why
+- ✅ Common issue suggestions
+- ✅ Line-specific feedback
+
+This helps you quickly identify and fix any syntax issues!
