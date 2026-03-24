@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Verification Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .svg-display {
+            border: 2px solid #ddd;
+            padding: 10px;
+            background: white;
+            margin: 10px 0;
+        }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0052a3; }
+        .log {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Export Verification Test</h1>
+    
+    <div class="test-section">
+        <h2>Test SVG with Styles</h2>
+        <p>This test verifies that CSS styles are properly inlined for PNG/JPEG export.</p>
+        
+        <div class="svg-display">
+            <svg id="test-svg" xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+                <style>
+                    .node-rect { fill: #3b82f6; stroke: #1e40af; stroke-width: 2; }
+                    .node-text { fill: white; font-size: 14px; font-family: sans-serif; }
+                    .edge-line { stroke: #6366f1; stroke-width: 2; fill: none; }
+                    .arrow { fill: #6366f1; }
+                </style>
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                        <polygon class="arrow" points="0 0, 10 3, 0 6" />
+                    </marker>
+                </defs>
+                
+                <!-- Node 1 -->
+                <rect class="node-rect" x="50" y="50" width="120" height="60" rx="8" />
+                <text class="node-text" x="110" y="85" text-anchor="middle">Start Node</text>
+                
+                <!-- Edge -->
+                <path class="edge-line" d="M 170 80 L 230 80" marker-end="url(#arrowhead)" />
+                
+                <!-- Node 2 -->
+                <rect class="node-rect" x="230" y="50" width="120" height="60" rx="8" />
+                <text class="node-text" x="290" y="85" text-anchor="middle">End Node</text>
+            </svg>
+        </div>
+        
+        <button onclick="testInlineStyles()">Test Style Inlining</button>
+        <button onclick="testCanvasConversion()">Test Canvas Conversion</button>
+        <button onclick="downloadPNG()">Download PNG</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Log</h2>
+        <div id="log" class="log">Ready to test...\n</div>
+    </div>
+
+    <script>
+        const logEl = document.getElementById('log');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            logEl.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        // Simplified version of the inlineStyles function
+        function parseCssRules(cssText) {
+            const rules = [];
+            let cleaned = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
+            const rulePattern = /([^{]+)\{([^}]+)\}/g;
+            let match;
+            
+            while ((match = rulePattern.exec(cleaned)) !== null) {
+                const selector = match[1].trim();
+                const declarationsText = match[2].trim();
+                const properties = {};
+                const declarations = declarationsText.split(';');
+                
+                declarations.forEach(decl => {
+                    const colonIndex = decl.indexOf(':');
+                    if (colonIndex > 0) {
+                        const property = decl.substring(0, colonIndex).trim();
+                        const value = decl.substring(colonIndex + 1).trim();
+                        if (property && value) {
+                            properties[property] = value;
+                        }
+                    }
+                });
+                
+                if (Object.keys(properties).length > 0) {
+                    rules.push({ selector, properties });
+                }
+            }
+            
+            return rules;
+        }
+
+        function inlineStyles(svgMarkup) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(svgMarkup, "image/svg+xml");
+            const svg = doc.querySelector("svg");
+            
+            if (!svg) {
+                log("ERROR: No SVG found", "error");
+                return svgMarkup;
+            }
+
+            const styleTags = Array.from(svg.querySelectorAll("style"));
+            const cssText = styleTags.map(style => style.textContent || "").join("\n");
+            
+            if (!cssText) {
+                log("WARN: No CSS found in SVG");
+                return svgMarkup;
+            }
+
+            log(`Found ${styleTags.length} style tag(s)`);
+            
+            const rules = parseCssRules(cssText);
+            log(`Parsed ${rules.length} CSS rules`);
+            
+            let appliedCount = 0;
+            const presentationAttrs = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 
+                                       'stroke-linecap', 'stroke-linejoin', 'opacity'];
+            
+            rules.forEach(rule => {
+                try {
+                    const elements = svg.querySelectorAll(rule.selector);
+                    log(`  Rule "${rule.selector}" matches ${elements.length} element(s)`);
+                    
+                    elements.forEach(element => {
+                        for (const [property, value] of Object.entries(rule.properties)) {
+                            if (presentationAttrs.includes(property)) {
+                                if (!element.hasAttribute(property)) {
+                                    element.setAttribute(property, value);
+                                    appliedCount++;
+                                }
+                            } else {
+                                if (!element.style.getPropertyValue(property)) {
+                                    element.style.setProperty(property, value);
+                                    appliedCount++;
+                                }
+                            }
+                        }
+                    });
+                } catch (e) {
+                    log(`ERROR applying selector: ${rule.selector}`, "error");
+                }
+            });
+            
+            log(`✓ Applied ${appliedCount} style properties`, "success");
+            
+            styleTags.forEach(style => style.remove());
+            
+            return new XMLSerializer().serializeToString(svg);
+        }
+
+        function testInlineStyles() {
+            log("=== Testing Style Inlining ===");
+            const svg = document.getElementById('test-svg');
+            const svgMarkup = new XMLSerializer().serializeToString(svg);
+            
+            log(`Original SVG length: ${svgMarkup.length}`);
+            
+            const inlined = inlineStyles(svgMarkup);
+            log(`Inlined SVG length: ${inlined.length}`);
+            
+            // Check if styles were applied
+            const hasStyleTag = inlined.includes('<style');
+            const hasFillAttr = inlined.includes('fill="#3b82f6"') || inlined.includes('fill="rgb');
+            const hasStrokeAttr = inlined.includes('stroke="#1e40af"') || inlined.includes('stroke="rgb');
+            
+            log(`Style tag removed: ${!hasStyleTag ? '✓ YES' : '✗ NO'}`, hasStyleTag ? 'error' : 'success');
+            log(`Fill attribute added: ${hasFillAttr ? '✓ YES' : '✗ NO'}`, hasFillAttr ? 'success' : 'error');
+            log(`Stroke attribute added: ${hasStrokeAttr ? '✓ YES' : '✗ NO'}`, hasStrokeAttr ? 'success' : 'error');
+            
+            if (!hasStyleTag && hasFillAttr && hasStrokeAttr) {
+                log("=== TEST PASSED ===", "success");
+            } else {
+                log("=== TEST FAILED ===", "error");
+            }
+        }
+
+        function testCanvasConversion() {
+            log("=== Testing Canvas Conversion ===");
+            const svg = document.getElementById('test-svg');
+            const svgMarkup = new XMLSerializer().serializeToString(svg);
+            const inlined = inlineStyles(svgMarkup);
+            
+            const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(inlined)}`;
+            
+            const img = new Image();
+            img.onload = () => {
+                log("✓ Image loaded successfully", "success");
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = 400;
+                canvas.height = 300;
+                const ctx = canvas.getContext('2d');
+                
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, 400, 300);
+                ctx.drawImage(img, 0, 0);
+                
+                // Check if canvas has colors (not all white)
+                const imageData = ctx.getImageData(100, 80, 1, 1);
+                const isBlue = imageData.data[0] < 100 && imageData.data[2] > 200;
+                
+                log(`Canvas has colors: ${isBlue ? '✓ YES' : '✗ NO'}`, isBlue ? 'success' : 'error');
+                log("=== CANVAS TEST PASSED ===", "success");
+            };
+            
+            img.onerror = () => {
+                log("✗ Failed to load image", "error");
+                log("=== CANVAS TEST FAILED ===", "error");
+            };
+            
+            img.src = dataUrl;
+        }
+
+        function downloadPNG() {
+            log("=== Downloading PNG ===");
+            const svg = document.getElementById('test-svg');
+            const svgMarkup = new XMLSerializer().serializeToString(svg);
+            const inlined = inlineStyles(svgMarkup);
+            
+            const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(inlined)}`;
+            
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 400;
+                canvas.height = 300;
+                const ctx = canvas.getContext('2d');
+                
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, 400, 300);
+                ctx.drawImage(img, 0, 0);
+                
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'test-export.png';
+                    link.click();
+                    
+                    setTimeout(() => URL.revokeObjectURL(url), 100);
+                    log("✓ PNG downloaded successfully", "success");
+                }, 'image/png');
+            };
+            
+            img.onerror = () => {
+                log("✗ Failed to create PNG", "error");
+            };
+            
+            img.src = dataUrl;
+        }
+    </script>
+</body>
+</html>

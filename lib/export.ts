@@ -59,13 +59,30 @@ function wrapSvgForExport(svgMarkup: string, settings: StudioSettings, format: E
   if (!originalSvg) {
     throw new Error("Could not parse the rendered SVG for export.");
   }
+  
+  // Extract both defs and style tags - they need to be at the root SVG level
   const defsMarkup = Array.from(originalSvg.querySelectorAll("defs"))
     .map((node) => node.outerHTML)
     .join("");
 
-  Array.from(originalSvg.querySelectorAll("defs")).forEach((node) => node.remove());
+  const styleMarkup = Array.from(originalSvg.querySelectorAll("style"))
+    .map((node) => node.outerHTML)
+    .join("");
 
-  const innerMarkup = originalSvg.innerHTML;
+  console.log(`Extracted ${originalSvg.querySelectorAll("defs").length} defs, ${originalSvg.querySelectorAll("style").length} style tags`);
+  if (styleMarkup) {
+    console.log("Style content length:", styleMarkup.length);
+  }
+
+  // Remove defs and styles from the original so they don't appear in innerMarkup
+  Array.from(originalSvg.querySelectorAll("defs")).forEach((node) => node.remove());
+  Array.from(originalSvg.querySelectorAll("style")).forEach((node) => node.remove());
+
+  // Use XMLSerializer to properly serialize SVG child nodes
+  const serializer = new XMLSerializer();
+  const innerMarkup = Array.from(originalSvg.childNodes)
+    .map((node) => serializer.serializeToString(node))
+    .join("");
   const { width: sourceWidth, height: sourceHeight } = getSvgSize(svgMarkup);
   const exportWidth = Math.max(320, settings.exportWidth);
   const exportHeight = Math.max(240, settings.exportHeight);
@@ -99,7 +116,8 @@ function wrapSvgForExport(svgMarkup: string, settings: StudioSettings, format: E
     : "";
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${exportWidth}" height="${exportHeight}" viewBox="0 0 ${exportWidth} ${exportHeight}" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${exportWidth}" height="${exportHeight}" viewBox="0 0 ${exportWidth} ${exportHeight}" fill="none">
+  ${styleMarkup}
   <defs>
     ${shadow.filter}
     ${defsMarkup}
@@ -121,8 +139,130 @@ function downloadBlob(blob: Blob, fileName: string) {
   requestAnimationFrame(() => URL.revokeObjectURL(url));
 }
 
+function inlineStyles(svgMarkup: string): string {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svgMarkup, "image/svg+xml");
+  const svg = doc.querySelector("svg");
+  
+  if (!svg) {
+    console.error("No SVG found in markup for inlining styles");
+    return svgMarkup;
+  }
+
+  // Extract all style tags
+  const styleTags = Array.from(svg.querySelectorAll("style"));
+  const cssText = styleTags.map(style => style.textContent || "").join("\n");
+  
+  if (!cssText) {
+    console.warn("No CSS found in SVG, returning original markup");
+    return svgMarkup;
+  }
+
+  console.log("Inlining styles from CSS:", cssText.substring(0, 200) + "...");
+
+  // Parse CSS manually since browser's CSSOM doesn't work across document contexts
+  try {
+    // Simple CSS parser for the most common patterns
+    const rules = parseCssRules(cssText);
+    
+    console.log(`Parsed ${rules.length} CSS rules`);
+    
+    let appliedCount = 0;
+    
+    // Apply each rule to matching elements
+    rules.forEach(rule => {
+      try {
+        const elements = svg.querySelectorAll(rule.selector);
+        
+        elements.forEach(element => {
+          if (element instanceof SVGElement || element instanceof HTMLElement) {
+            // Apply each property
+            for (const [property, value] of Object.entries(rule.properties)) {
+              // For SVG presentation attributes, use setAttribute
+              if (['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-linecap',
+                   'stroke-linejoin', 'stroke-miterlimit', 'opacity', 'fill-opacity', 
+                   'stroke-opacity', 'stop-color', 'stop-opacity', 'color'].includes(property)) {
+                // Only set if not already explicitly set
+                if (!element.hasAttribute(property)) {
+                  element.setAttribute(property, value);
+                  appliedCount++;
+                }
+              } else {
+                // For other properties, use inline style
+                const currentValue = element.style.getPropertyValue(property);
+                if (!currentValue) {
+                  element.style.setProperty(property, value);
+                  appliedCount++;
+                }
+              }
+            }
+          }
+        });
+      } catch (e) {
+        console.warn(`Could not apply selector: ${rule.selector}`, e);
+      }
+    });
+    
+    console.log(`Applied ${appliedCount} style properties to elements`);
+    
+    // Remove style tags since styles are now inlined
+    styleTags.forEach(style => style.remove());
+    
+    // Serialize back
+    const serialized = new XMLSerializer().serializeToString(svg);
+    console.log("Styles inlined successfully, SVG length:", serialized.length);
+    return serialized;
+  } catch (error) {
+    console.error("Error inlining styles:", error);
+    return svgMarkup;
+  }
+}
+
+// Simple CSS rule parser for common patterns
+function parseCssRules(cssText: string): Array<{ selector: string; properties: Record<string, string> }> {
+  const rules: Array<{ selector: string; properties: Record<string, string> }> = [];
+  
+  // Remove comments
+  let cleaned = cssText.replace(/\/\*[\s\S]*?\*\//g, '');
+  
+  // Match rule blocks: selector { prop: value; prop: value; }
+  const rulePattern = /([^{]+)\{([^}]+)\}/g;
+  let match;
+  
+  while ((match = rulePattern.exec(cleaned)) !== null) {
+    const selector = match[1].trim();
+    const declarationsText = match[2].trim();
+    
+    // Parse declarations
+    const properties: Record<string, string> = {};
+    const declarations = declarationsText.split(';');
+    
+    declarations.forEach(decl => {
+      const colonIndex = decl.indexOf(':');
+      if (colonIndex > 0) {
+        const property = decl.substring(0, colonIndex).trim();
+        const value = decl.substring(colonIndex + 1).trim();
+        
+        if (property && value) {
+          properties[property] = value;
+        }
+      }
+    });
+    
+    if (Object.keys(properties).length > 0) {
+      rules.push({ selector, properties });
+    }
+  }
+  
+  return rules;
+}
+
 function svgToDataUrl(svgMarkup: string) {
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgMarkup)}`;
+  console.log("Converting SVG to data URL, starting inline process");
+  // Inline all CSS styles before converting to data URL
+  const inlinedSvg = inlineStyles(svgMarkup);
+  console.log("Inlined SVG length:", inlinedSvg.length);
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(inlinedSvg)}`;
 }
 
 async function svgMarkupToCanvas(
@@ -176,13 +316,19 @@ async function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: n
 }
 
 export async function exportDiagram(svgMarkup: string, settings: StudioSettings, format: ExportFormat) {
+  console.log(`Starting export as ${format.toUpperCase()}`);
+  console.log("Original SVG length:", svgMarkup.length);
+  
   const exportSvg = wrapSvgForExport(svgMarkup, settings, format);
+  console.log("Wrapped SVG length:", exportSvg.length);
+  
   const width = Math.max(320, settings.exportWidth);
   const height = Math.max(240, settings.exportHeight);
   const background = ensureExportBackground(settings, format);
   const baseFileName = settings.fileName.trim() || "mermaid-flow-diagram";
 
   if (format === "svg") {
+    console.log("Downloading SVG file");
     downloadBlob(
       new Blob([exportSvg], { type: "image/svg+xml;charset=utf-8" }),
       `${baseFileName}.svg`
@@ -190,6 +336,7 @@ export async function exportDiagram(svgMarkup: string, settings: StudioSettings,
     return;
   }
 
+  console.log(`Converting to canvas: ${width}x${height}, scale: ${settings.exportScale}`);
   const canvas = await svgMarkupToCanvas(
     exportSvg,
     width,
@@ -197,19 +344,25 @@ export async function exportDiagram(svgMarkup: string, settings: StudioSettings,
     Math.max(1, settings.exportScale),
     background
   );
+  console.log("Canvas created successfully");
 
   if (format === "png") {
+    console.log("Generating PNG blob");
     const blob = await canvasToBlob(canvas, "image/png");
+    console.log("PNG blob size:", blob.size);
     downloadBlob(blob, `${baseFileName}.png`);
     return;
   }
 
   if (format === "jpeg") {
+    console.log("Generating JPEG blob");
     const blob = await canvasToBlob(canvas, "image/jpeg", 0.96);
+    console.log("JPEG blob size:", blob.size);
     downloadBlob(blob, `${baseFileName}.jpg`);
     return;
   }
 
+  console.log("Generating PDF");
   const pdf = new jsPDF({
     orientation: width >= height ? "landscape" : "portrait",
     unit: "px",
@@ -218,4 +371,5 @@ export async function exportDiagram(svgMarkup: string, settings: StudioSettings,
 
   pdf.addImage(canvas.toDataURL("image/png", 1), "PNG", 0, 0, width, height);
   pdf.save(`${baseFileName}.pdf`);
+  console.log("PDF download complete");
 }
